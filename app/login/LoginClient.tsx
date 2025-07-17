@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import React, { useState} from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;  
@@ -9,7 +10,24 @@ const LoginClient: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const router = useRouter();  
+  const router = useRouter();    
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/auth/me`, {
+      credentials: 'include',
+    })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        // Si hay sesión activa, redirige al dashboard
+        if (data.user) {
+          router.replace('/dashboard'); // reemplaza para no dejar /login en el historial
+        }
+      })
+      .catch(() => {
+        // Si no hay sesión, permanece en login
+        // No hagas nada, deja el formulario
+      });
+  }, [router]);
 
  const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -39,13 +57,10 @@ const LoginClient: React.FC = () => {
     });
 
     if (meRes.ok) {
-      const meData = await meRes.json();
-      console.log('Usuario autenticado, meData:', meData);
-      if (meData.user.mustChangePassword) {
-        console.log('Redirigir a change-password');
+      const meData = await meRes.json();      
+      if (meData.user.mustChangePassword) {        
         router.push('/change-password');
-      } else {
-        console.log('Redirigir a dashboard');
+      } else {        
         router.push('/dashboard');
       }
     } else {
