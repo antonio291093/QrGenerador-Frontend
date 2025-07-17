@@ -34,24 +34,26 @@ export default function DashboardPage() {
   const [uploadedLogoUrl, setUploadedLogoUrl] = useState<string | null>(null);
   const [qrUrl, setQrUrl] = useState('');
   const [uploading, setUploading] = useState(false);
-  const router = useRouter();
+  const router = useRouter(); 
 
   useEffect(() => {
-    fetch(`${API_URL}/api/auth/me`, {
-      credentials: 'include',
+  fetch(`${API_URL}/api/auth/me`, {
+    credentials: 'include',
+  })
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(data => {
+      if (!data.user) {
+        // Si NO hay usuario, redirigir al login
+        router.replace('/login');
+      }
+      // Si hay usuario, permanece en dashboard (puedes guardar el usuario si lo necesitas)
     })
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => {
-        // Si hay sesión activa, redirige al dashboard
-        if (data.user) {
-          router.replace('/login'); // reemplaza para no dejar /login en el historial
-        }
-      })
-      .catch(() => {
-        // Si no hay sesión, permanece en login
-        // No hagas nada, deja el formulario
-      });
-  }, [router]);
+    .catch(() => {
+      // Error (no sesión, token expirado, etc): redirigir al login
+      router.replace('/login');
+    });
+}, [router]);
+
 
   // Limpia URLs de previsualización para evitar fugas de memoria
   useEffect(() => {
