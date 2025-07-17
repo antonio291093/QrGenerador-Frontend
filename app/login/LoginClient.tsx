@@ -11,7 +11,7 @@ const LoginClient: React.FC = () => {
   const [message, setMessage] = useState('');
   const router = useRouter();  
 
-  const handleSubmit = async (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
   try {         
@@ -40,15 +40,18 @@ const LoginClient: React.FC = () => {
 
     if (meRes.ok) {
       const meData = await meRes.json();
-      // Puedes, si quieres, sincronizar info con meData.user aquí
+      console.log('Usuario autenticado, meData:', meData);
       if (meData.user.mustChangePassword) {
+        console.log('Redirigir a change-password');
         router.push('/change-password');
       } else {
+        console.log('Redirigir a dashboard');
         router.push('/dashboard');
       }
     } else {
       setMessage("La sesión no pudo establecerse correctamente");
     }
+
   } catch {
     setMessage('Error de conexión con el servidor');
   }

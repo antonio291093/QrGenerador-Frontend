@@ -298,13 +298,13 @@ export default function DashboardPage() {
     if (!result.isConfirmed) return;
 
     try {
-        MySwal.fire({
-        title: 'Eliminando QR...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
+      MySwal.fire({
+      title: 'Eliminando QR...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
 
       const response = await fetch(`${API_URL}/api/qrs/${qrId}`, {
         method: 'DELETE',
