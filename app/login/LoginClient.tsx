@@ -12,35 +12,47 @@ const LoginClient: React.FC = () => {
   const router = useRouter();  
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {         
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Importante para cookies
-        body: JSON.stringify({ email, password }),
-      });
+  try {         
+    const response = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Importante para cookies
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        setMessage(data.message || 'Error de autenticación');
-        return;
-      }
-      
-      localStorage.setItem('email', data.user.email);
+    if (!response.ok) {
+      setMessage(data.message || 'Error de autenticación');
+      return;
+    }
 
-      if (data.user.mustChangePassword) {
+    // Opcional: guardar email en localStorage solo si te hace falta para UX
+    localStorage.setItem('email', data.user.email);
+
+    // Ahora, verifica la sesión realmente activa con /me
+    const meRes = await fetch(`${API_URL}/api/auth/me`, {
+      method: 'GET',
+      credentials: 'include',
+    });
+
+    if (meRes.ok) {
+      const meData = await meRes.json();
+      // Puedes, si quieres, sincronizar info con meData.user aquí
+      if (meData.user.mustChangePassword) {
         router.push('/change-password');
       } else {
         router.push('/dashboard');
       }
-    } catch{
-      setMessage('Error de conexión con el servidor');
+    } else {
+      setMessage("La sesión no pudo establecerse correctamente");
     }
-  };
-
+  } catch {
+    setMessage('Error de conexión con el servidor');
+  }
+};
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-80">
