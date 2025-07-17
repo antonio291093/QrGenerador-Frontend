@@ -273,7 +273,7 @@ export default function DashboardPage() {
           text: data.message || 'Ha ocurrido un problema inesperado.',
         });
       }
-    } catch (error) {
+    } catch{
       Swal.close(); // Cierra el loading si algo explota
       await MySwal.fire({
         icon: 'error',
@@ -298,7 +298,7 @@ export default function DashboardPage() {
     if (!result.isConfirmed) return;
 
     try {
-      const loading = MySwal.fire({
+        MySwal.fire({
         title: 'Eliminando QR...',
         allowOutsideClick: false,
         didOpen: () => {
@@ -329,7 +329,7 @@ export default function DashboardPage() {
           text: data.message || 'Ocurrió un problema inesperado',
         });
       }
-    } catch (error) {
+    } catch {
       MySwal.close();
       MySwal.fire({
         icon: 'error',

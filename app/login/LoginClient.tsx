@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;  
 
@@ -36,7 +36,7 @@ const LoginClient: React.FC = () => {
       } else {
         router.push('/dashboard');
       }
-    } catch (err) {
+    } catch{
       setMessage('Error de conexión con el servidor');
     }
   };
