@@ -36,6 +36,23 @@ export default function DashboardPage() {
   const [uploading, setUploading] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    fetch(`${API_URL}/api/auth/me`, {
+      credentials: 'include',
+    })
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => {
+        // Si hay sesión activa, redirige al dashboard
+        if (data.user) {
+          router.replace('/login'); // reemplaza para no dejar /login en el historial
+        }
+      })
+      .catch(() => {
+        // Si no hay sesión, permanece en login
+        // No hagas nada, deja el formulario
+      });
+  }, [router]);
+
   // Limpia URLs de previsualización para evitar fugas de memoria
   useEffect(() => {
     return () => {
