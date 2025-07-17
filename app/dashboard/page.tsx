@@ -131,7 +131,7 @@ export default function DashboardPage() {
           text: data.message || 'Ha ocurrido un problema inesperado.',
         });
       }
-    } catch (err) {
+    } catch {
       Swal.close();
       await MySwal.fire({
         icon: 'error',
@@ -188,7 +188,7 @@ export default function DashboardPage() {
           text: data.message || 'Ocurrió un error inesperado.',
         });
       }
-    } catch (err) {
+    } catch {
       Swal.close();
       // Notificación de error de red
       await MySwal.fire({
@@ -350,16 +350,6 @@ export default function DashboardPage() {
         localStorage.removeItem('email');
         router.push('/login');
       });
-  };
-
-  const handleDownloadPng = (url: string, id: string) => {
-    // Forzar descarga, usando una etiqueta temporal <a>
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `qr_${id}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   const handleOpenPngInNewTab = (url: string) => {
