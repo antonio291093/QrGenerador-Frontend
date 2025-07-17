@@ -341,16 +341,15 @@ export default function DashboardPage() {
 
 
   // --- Logout ---
-  const logout = () => {
-    fetch(`${API_URL}/api/auth/logout`, {
+  const logout = async () => {
+    await fetch(`${API_URL}/api/auth/logout`, {
       method: 'POST',
       credentials: 'include',
-    })
-      .then(() => {
-        localStorage.removeItem('email');
-        router.push('/login');
-      });
+    });
+    localStorage.removeItem('email');
+    router.push('/login');
   };
+
 
   const handleOpenPngInNewTab = (url: string) => {
     window.open(url, '_blank');
