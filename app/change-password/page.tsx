@@ -1,44 +1,74 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;  
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [message, setMessage] = useState('');
+  const router = useRouter();
+
+  // ✅ Proteger esta ruta usando /me
+  useEffect(() => {
+    fetch(`${API_URL}/api/auth/me`, {
+      credentials: 'include',
+    })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(data => {
+        if (!data.user.mustChangePassword) {
+          // Ya cambió la contraseña, redirige a dashboard
+          router.replace('/dashboard');
+        }
+      })
+      .catch(() => {
+        // No autenticado → redirigir al login
+        router.replace('/login');
+      });
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setMessage('');
+
     if (newPassword !== confirm) {
       setMessage('Las contraseñas no coinciden');
       return;
     }
+
     if (newPassword.length < 8) {
       setMessage('La contraseña debe tener al menos 8 caracteres');
       return;
     }
 
-    const token = localStorage.getItem('token');    
-    const response = await fetch(`${API_URL}/api/auth/change-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ newPassword }),
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // ✅ envía la cookie de sesión
+        body: JSON.stringify({ newPassword }),
+      });
 
-    const data = await response.json();
-    if (response.ok) {
-      setMessage('Contraseña cambiada correctamente. Redirigiendo...');
-      // Redirige al dashboard o login
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 1500);
-    } else {
-      setMessage(data.message || 'Error al cambiar la contraseña');
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage('Contraseña cambiada correctamente. Redirigiendo...');
+        setTimeout(() => {
+          router.replace('/dashboard');
+        }, 1500);
+      } else {
+        setMessage(data.message || 'Error al cambiar la contraseña');
+      }
+    } catch (err) {
+      setMessage('Error del servidor');
     }
   };
 
