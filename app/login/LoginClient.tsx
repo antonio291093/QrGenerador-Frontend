@@ -1,16 +1,16 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import React, { useState} from 'react';
+import { useEffect, useState } from 'react';
+import Swal from 'sweetalert2';
+import React from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;  
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const LoginClient: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const router = useRouter();    
+  const router = useRouter();
 
   useEffect(() => {
     fetch(`${API_URL}/api/auth/me`, {
@@ -18,59 +18,78 @@ const LoginClient: React.FC = () => {
     })
       .then(res => res.ok ? res.json() : Promise.reject())
       .then(data => {
-        // Si hay sesión activa, redirige al dashboard
         if (data.user) {
-          router.replace('/dashboard'); // reemplaza para no dejar /login en el historial
+          router.replace('/dashboard');
         }
       })
       .catch(() => {
-        // Si no hay sesión, permanece en login
-        // No hagas nada, deja el formulario
+        // No hacer nada si no hay sesión
       });
   }, [router]);
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  try {         
-    const response = await fetch(`${API_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // Importante para cookies
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      setMessage(data.message || 'Error de autenticación');
-      return;
-    }
-
-    // Opcional: guardar email en localStorage solo si te hace falta para UX
-    localStorage.setItem('email', data.user.email);
-
-    // Ahora, verifica la sesión realmente activa con /me
-    const meRes = await fetch(`${API_URL}/api/auth/me`, {
-      method: 'GET',
-      credentials: 'include',
-    });
-
-    if (meRes.ok) {
-      const meData = await meRes.json();      
-      if (meData.user.mustChangePassword) {        
-        router.push('/change-password');
-      } else {        
-        router.push('/dashboard');
+      if (!response.ok) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: data.message || 'Error de autenticación',
+        });
+        return;
       }
-    } else {
-      setMessage("La sesión no pudo establecerse correctamente");
-    }
 
-  } catch {
-    setMessage('Error de conexión con el servidor');
-  }
-};
+      localStorage.setItem('email', data.user.email);
+
+      const meRes = await fetch(`${API_URL}/api/auth/me`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (meRes.ok) {
+        const meData = await meRes.json();
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Bienvenido',
+          text: `Has iniciado sesión como ${meData.user.email}`,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        setTimeout(() => {
+          if (meData.user.mustChangePassword) {
+            router.push('/change-password');
+          } else {
+            router.push('/dashboard');
+          }
+        }, 1500);
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Sesión no válida',
+          text: 'La sesión no pudo establecerse correctamente',
+        });
+      }
+    } catch {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo conectar con el servidor',
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-80">
@@ -97,7 +116,6 @@ const LoginClient: React.FC = () => {
         >
           Entrar
         </button>
-        {message && <p className="mt-4 text-center text-red-500">{message}</p>}
       </form>
     </div>
   );
