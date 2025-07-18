@@ -67,7 +67,7 @@ export default function ChangePasswordPage() {
       } else {
         setMessage(data.message || 'Error al cambiar la contraseña');
       }
-    } catch (err) {
+    } catch {
       setMessage('Error del servidor');
     }
   };
